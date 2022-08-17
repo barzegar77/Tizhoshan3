@@ -1,0 +1,12 @@
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.Service\bin\Debug\net5.0\Tizhoshan.Service.deps.json
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.Service\bin\Debug\net5.0\Tizhoshan.Service.dll
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.Service\bin\Debug\net5.0\ref\Tizhoshan.Service.dll
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.Service\bin\Debug\net5.0\Tizhoshan.Service.pdb
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.Service\obj\Debug\net5.0\Tizhoshan.Service.csproj.AssemblyReference.cache
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.Service\obj\Debug\net5.0\Tizhoshan.Service.GeneratedMSBuildEditorConfig.editorconfig
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.Service\obj\Debug\net5.0\Tizhoshan.Service.AssemblyInfoInputs.cache
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.Service\obj\Debug\net5.0\Tizhoshan.Service.AssemblyInfo.cs
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.Service\obj\Debug\net5.0\Tizhoshan.Service.csproj.CoreCompileInputs.cache
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.Service\obj\Debug\net5.0\Tizhoshan.Service.dll
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.Service\obj\Debug\net5.0\ref\Tizhoshan.Service.dll
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.Service\obj\Debug\net5.0\Tizhoshan.Service.pdb

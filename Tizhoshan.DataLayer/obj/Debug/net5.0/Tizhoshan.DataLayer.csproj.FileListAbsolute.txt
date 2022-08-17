@@ -1,0 +1,15 @@
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.DataLayer\bin\Debug\net5.0\Tizhoshan.DataLayer.deps.json
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.DataLayer\bin\Debug\net5.0\Tizhoshan.DataLayer.runtimeconfig.json
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.DataLayer\bin\Debug\net5.0\Tizhoshan.DataLayer.runtimeconfig.dev.json
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.DataLayer\bin\Debug\net5.0\Tizhoshan.DataLayer.dll
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.DataLayer\bin\Debug\net5.0\ref\Tizhoshan.DataLayer.dll
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.DataLayer\bin\Debug\net5.0\Tizhoshan.DataLayer.pdb
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.DataLayer\obj\Debug\net5.0\Tizhoshan.DataLayer.GeneratedMSBuildEditorConfig.editorconfig
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.DataLayer\obj\Debug\net5.0\Tizhoshan.DataLayer.AssemblyInfoInputs.cache
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.DataLayer\obj\Debug\net5.0\Tizhoshan.DataLayer.AssemblyInfo.cs
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.DataLayer\obj\Debug\net5.0\Tizhoshan.DataLayer.csproj.CoreCompileInputs.cache
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.DataLayer\obj\Debug\net5.0\Tizhoshan.DataLayer.dll
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.DataLayer\obj\Debug\net5.0\ref\Tizhoshan.DataLayer.dll
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.DataLayer\obj\Debug\net5.0\Tizhoshan.DataLayer.pdb
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.DataLayer\obj\Debug\net5.0\Tizhoshan.DataLayer.genruntimeconfig.cache
+D:\Sources\Tizhoshan\Tizhoshan\Tizhoshan.DataLayer\obj\Debug\net5.0\Tizhoshan.DataLayer.csproj.AssemblyReference.cache
