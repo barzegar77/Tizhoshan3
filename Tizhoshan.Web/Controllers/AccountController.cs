@@ -1,5 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using Tizhoshan.ServiceLayer.DTOs.AccountViewModels;
 using Tizhoshan.ServiceLayer.ENUMs.UserENUMs;
 using Tizhoshan.ServiceLayer.Services.Interfaces;
@@ -15,78 +21,63 @@ namespace Tizhoshan.Web.Controllers
             _accountService = accountService;
         }
 
-        //[HttpGet]
-        //[Route("Login")]
-        //public IActionResult Login(string returnUrl = "/")
-        //{
-        //    return PartialView("_login");
-        //}
+        [HttpGet]
+        [Route("Login")]
+        public IActionResult Login(string returnUrl = "/")
+        {
+            return View();
+        }
 
-        //[Route("Login")]
-        //[HttpPost]
-        //public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = "/")
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        var validationErrors = string.Join("<br />",
-        //                             ModelState.Values.Where(E => E.Errors.Count > 0)
-        //                             .SelectMany(E => E.Errors)
-        //                             .Select(E => E.ErrorMessage)
-        //                             .ToArray());
-        //        return Json(new { status = "fail", message = validationErrors });
+        [Route("Login")]
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = "/")
+        {
+            if (ModelState.IsValid)
+            {
+                var user = _accountService.GetUserForLogin(model.PhoneNumber, model.Password);
+                if (user == null)
+                {
+                    TempData["error"] = "اطلاعات ورود اشتباه است";
+                }
+                else if (user.PhoneNumberConfirmed == false)
+                {
+                    TempData["error"] = "شماره تلفن شما تایید نشده است";
+                }
+                else if (user.IsDeleted == true)
+                {
+                    TempData["error"] = "حساب کاربری شما مسدود است";
+                }
+                else
+                {
+                    var claims = new List<Claim>()
+                        {
+                            new Claim(ClaimTypes.NameIdentifier,user.UserId.ToString()),
+                            new Claim(ClaimTypes.Name,user.PhoneNumber)
+                        };
+                    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    var principal = new ClaimsPrincipal(identity);
 
-        //    }
-        //    else
-        //    {
-        //        string message = "";
-        //        string status = "";
-        //        var user = _iAccountRepository.GetUserForLogin(model.PhoneNumber, model.Password);
-        //        if (user == null)
-        //        {
-        //            status = "fail";
-        //            message = "اطلاعات ورود اشتباه است";
-        //        }
-        //        else if (user.PhoneNumberConfirmed == false)
-        //        {
-        //            status = "fail";
-        //            message = "شماره تلفن شما تایید نشده است";
-        //        }
-        //        else if (user.Status == false)
-        //        {
-        //            status = "fail";
-        //            message = "حساب کاربری شما غیر فعال شده است.";
-        //        }
-        //        else
-        //        {
-        //            var claims = new List<Claim>()
-        //            {
-        //                new Claim(ClaimTypes.NameIdentifier,user.AplicationUserId.ToString()),
-        //                new Claim(ClaimTypes.Name,user.UserName)
-        //            };
-        //            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        //            var principal = new ClaimsPrincipal(identity);
+                    var properties = new AuthenticationProperties
+                    {
+                        IsPersistent = model.RememberMe,
+                        AllowRefresh = true
+                    };
+                    await HttpContext.SignInAsync(principal, properties);
+                    TempData["success"] = "ورود به حساب کاربری با موفقیت انجام شد";
+                    return RedirectToAction("Index", "Home");
+                }
+            }
+            return View(model);
+        }
 
-        //            var properties = new AuthenticationProperties
-        //            {
-        //                IsPersistent = model.RememberMe,
-        //                AllowRefresh = true
-        //            };
-        //            await HttpContext.SignInAsync(principal, properties);
-        //            status = "success";
-        //            message = "ورود با موفقیت انجام شد";
-        //        }
-        //        return Json(new { status = status, message = message });
-        //    }
-        //}
-
-        //[HttpGet]
-        //[Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
-        //[Route("/SignOut")]
-        //public async Task<IActionResult> SignOut()
-        //{
-        //    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        //    return Redirect("/");
-        //}
+        [HttpGet]
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+        [Route("/SignOut")]
+        public async Task<IActionResult> SignOut()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Redirect("/");
+        }
 
         [HttpGet]
         [Route("Register")]
@@ -99,157 +90,140 @@ namespace Tizhoshan.Web.Controllers
         [HttpPost]
         public IActionResult Register(RegisterViewModel model)
         {
-            string message = "";
-            string status = "";
-
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                var validationErrors = string.Join("<br />",
-                                     ModelState.Values.Where(E => E.Errors.Count > 0)
-                                     .SelectMany(E => E.Errors)
-                                     .Select(E => E.ErrorMessage)
-                                     .ToArray());
-                return Json(new { status = "fail", message = validationErrors });
-            }
-            RegisterUserConditionsEnum res = _accountService.RegisterUser(model);
+                RegisterUserConditionsEnum res = _accountService.RegisterUser(model);
 
-            if (res == RegisterUserConditionsEnum.AlternativePhone)
-            {
-                status = "fail";
-                message = "این شماره قبلا در سایت ثبت شده است";
+                if (res == RegisterUserConditionsEnum.AlternativePhone)
+                {
+                    TempData["error"] = "این شماره قبلا در سایت ثبت شده است";
+                }
+
+                if (res == RegisterUserConditionsEnum.OneMinuteNeeded)
+                {
+                    TempData["error"] = "بین هر درخواست باید یک دقیقه فاصله باشد";
+                }
+
+                if(res == RegisterUserConditionsEnum.Registerd)
+                {
+                    TempData["success"] = "ثبت نام شما با موفقیت ایجاد شد";
+                    return RedirectToAction("ConfirmPhone", new { id = model.PhoneNumber });
+                }
             }
 
-            else if (res == RegisterUserConditionsEnum.OneMinuteNeeded)
-            {
-                status = "fail";
-                message = "بین هر درخواست باید یک دقیقه فاصله باشد";
-
-            }
-            return Json(new { status = status, message = message });
+            return View(model);
 
         }
 
-        //[Route("ConfirmPhone/{id}")]
-        //[HttpGet]
-        //public IActionResult ConfirmPhone(string id)
-        //{
-        //    ViewBag.phoneNumber = id;
-        //    return PartialView("_confirmPhone");
-        //}
-
-        //[Route("ConfirmPhone")]
-        //[HttpPost]
-        //public async Task<IActionResult> ConfirmPhone(ConfirmPhoneViewModel model)
-        //{
-        //    string status = "";
-        //    string message = "";
-        //    if (!ModelState.IsValid)
-        //    {
-        //        var validationErrors = string.Join("<br />",
-        //                             ModelState.Values.Where(E => E.Errors.Count > 0)
-        //                             .SelectMany(E => E.Errors)
-        //                             .Select(E => E.ErrorMessage)
-        //                             .ToArray());
-        //        return Json(new { status = "fail", message = validationErrors });
-        //    }
-        //    if (User.Identity.IsAuthenticated)
-        //    {
-        //        status = "fail";
-        //        message = "حساب کاربری شما تائید شده است";
-        //        return Json(new { status = "fail", message = message });
-        //    }
 
 
+        [Route("ConfirmPhone/{id}")]
+        [HttpGet]
+        public IActionResult ConfirmPhone(string id)
+        {
+            ViewBag.phoneNumber = id;
+            return View();
+        }
 
-        //    var res = _iAccountRepository.RegisterConfirmPhone(model);
-        //    if (res == ConfirmPhoneRegisterEnum.Confirmed)
-        //    {
-        //        var user = _iAccountRepository.FindUserByUserName(model.PhoneNumber);
-        //        var claims = new List<Claim>()
-        //            {
-        //                new Claim(ClaimTypes.NameIdentifier,user.AplicationUserId.ToString()),
-        //                new Claim(ClaimTypes.Name,user.UserName),
-        //                new Claim("id",user.AplicationUserId.ToString())
-        //            };
-        //        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        //        var principal = new ClaimsPrincipal(identity);
+        [Route("ConfirmPhone")]
+        [HttpPost]
+        public async Task<IActionResult> ConfirmPhone(ConfirmPhoneViewModel model)
+        {
 
-        //        var properties = new AuthenticationProperties
-        //        {
-        //            IsPersistent = false
-        //        };
-        //        await HttpContext.SignInAsync(principal, properties);
-        //        status = "success";
-        //        message = "حساب کاربری شما با موفقیت ساخته شد";
+            if (User.Identity.IsAuthenticated)
+            {
+                TempData["error"] = "حساب کاربری شما تائید شده است";
+                return RedirectToAction("Login");
+            }
+
+            if (ModelState.IsValid)
+            {
+
+                var res = _accountService.RegisterConfirmPhone(model);
+                if (res == ConfirmPhoneRegisterEnum.Confirmed)
+                {
+                    //var user = _accountService.FindUserByPhoneNumber(model.PhoneNumber);
+                    //var claims = new List<Claim>()
+                    //{
+                    //    new Claim(ClaimTypes.NameIdentifier,user.UserId.ToString()),
+                    //    new Claim(ClaimTypes.Name,user.PhoneNumber),
+                    //    new Claim("id",user.UserId.ToString())
+                    //};
+                    //var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    //var principal = new ClaimsPrincipal(identity);
+
+                    //var properties = new AuthenticationProperties
+                    //{
+                    //    IsPersistent = false
+                    //};
+                    //await HttpContext.SignInAsync(principal, properties);
+                    TempData["success"] = "حساب کاربری شما با موفقیت ساخته شد";
+                    return RedirectToAction("Index", "Home");
+                }
+                else if (res == ConfirmPhoneRegisterEnum.ErrorConfirmed)
+                {
+                    TempData["error"] = "کد تائید اشتباه است";
+                }
+                else if (res == ConfirmPhoneRegisterEnum.Expierd)
+                {
+                    TempData["error"] = "کد تائید منقضی شده , لطفا دوباره درخواست نمائید";
+                }
+                else
+                {
+                    TempData["error"] = "متاسفانه تائید شماره همراه موفقیت آمیز نبود , لطفا دوباره تلاش نمائید";
+                }
+            }
+
+            return View(model);
+
+        }
 
 
 
 
 
+        [Route("RequestAnotherRegisterVerificationCode/{id}")]
+        [HttpGet]
+        public IActionResult RequestAnotherRegisterVerificationCode(string id)
+        {
+            string message = "";
+            string status = "fail";
+            if (User.Identity.IsAuthenticated)
+            {
+                return Json(new { status = "fail" });
+            }
+            var res = _accountService.RequestAnotherRegisterVerificationCode(id);//id is userName==phone number
+            if (res == RequestAnotherRegisterVerificationCodeEnum.NotAllowed)
+            {
+                message = "بین هر درخواست باید 2 دقیقه فاصله باشد";
+            }
+            else if (res == RequestAnotherRegisterVerificationCodeEnum.UserNotFound)
+            {
+                message = "شماره همراه اشتباه است";
+            }
+            else if (res == RequestAnotherRegisterVerificationCodeEnum.UserIsActive)
+            {
+                message = "کاربر فعال امکان دریافت کد تایید را ندارد";
 
-        //    }
-        //    else if (res == ConfirmPhoneRegisterEnum.ErrorConfirmed)
-        //    {
-        //        status = "fail";
-        //        message = "کد تائید اشتباه است";
-        //    }
-        //    else if (res == ConfirmPhoneRegisterEnum.Expierd)
-        //    {
-        //        status = "fail";
-        //        message = "کد تائید منقضی شده , لطفا دوباره درخواست نمائید";
-        //    }
-        //    else
-        //    {
-        //        status = "fail";
-        //        message = "متاسفانه تائید شماره همراه موفقیت آمیز نبود , لطفا دوباره تلاش نمائید";
-        //    }
-        //    return Json(new { status = status, message = message });
+            }
+            else if (res == RequestAnotherRegisterVerificationCodeEnum.NotSend)
+            {
+                message = "درخواست با خطا مواجه شد";
+            }
+            else
+            {
+                message = "کد تایید جدید برای " + id + " ارسال شد";
+                status = "success";
+            }
+            return Json(new { status = status, message = message });
+        }
 
-        //}
-
-        //[Route("RequestAnotherRegisterVerificationCode/{id}")]
-        //[HttpGet]
-        //public IActionResult RequestAnotherRegisterVerificationCode(string id)
-        //{
-        //    string message = "";
-        //    string status = "fail";
-        //    if (User.Identity.IsAuthenticated)
-        //    {
-        //        return Json(new { status = "fail" });
-        //    }
-        //    var res = _iAccountRepository.RequestAnotherRegisterVerificationCode(id);//id is userName==phone number
-        //    if (res == RequestAnotherRegisterVerificationCodeEnum.NotAllowed)
-        //    {
-        //        message = "بین هر درخواست باید 2 دقیقه فاصله باشد";
-        //    }
-        //    else if (res == RequestAnotherRegisterVerificationCodeEnum.UserNotFound)
-        //    {
-        //        message = "شماره همراه اشتباه است";
-        //    }
-        //    else if (res == RequestAnotherRegisterVerificationCodeEnum.UserIsActive)
-        //    {
-        //        message = "کاربر فعال امکان دریافت کد تایید را ندارد";
-
-        //    }
-        //    else if (res == RequestAnotherRegisterVerificationCodeEnum.NotSend)
-        //    {
-        //        message = "درخواست با خطا مواجه شد";
-        //    }
-        //    else
-        //    {
-        //        message = "کد تایید جدید برای " + id + " ارسال شد";
-        //        status = "success";
-        //    }
-        //    return Json(new { status = status, message = message });
-
-        //}
-
-        //[Route("BaseChangePassword")]
-        //[HttpGet]
-        //public IActionResult BaseChangePassword()
-        //{
-        //    return PartialView("_baseChangePassword");
-        //}
+        [Route("BaseChangePassword")]
+        [HttpGet]
+        public IActionResult BaseChangePassword()
+        {
+            return View();
+        }
 
         //[Route("BaseChangePassword")]
         //[HttpPost]

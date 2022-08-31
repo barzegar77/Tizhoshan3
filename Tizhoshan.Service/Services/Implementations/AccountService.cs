@@ -151,6 +151,58 @@ namespace Tizhoshan.ServiceLayer.Services.Implementations
             return newVerificationCode;
         }
 
+
+        public ConfirmPhoneRegisterEnum RegisterConfirmPhone(ConfirmPhoneViewModel model)
+        {
+            var iccuser = _context.Users.Where
+                (x => x.PhoneNumber == model.PhoneNumber
+                && x.ConfirmationCode == model.Code
+               ).FirstOrDefault();
+            if (iccuser != null)
+            {
+                if (iccuser.ConfirmationCodeDateTime.AddMinutes(5) < DateTime.Now)
+                {
+                    return ConfirmPhoneRegisterEnum.Expierd;
+                }
+                iccuser.PhoneNumberConfirmed = true;
+                iccuser.ConfirmationCode = GenereateConfirmationCode();
+                UpdateUser(iccuser);
+                return ConfirmPhoneRegisterEnum.Confirmed;
+            }
+            return ConfirmPhoneRegisterEnum.ErrorConfirmed;
+        }
+
+
+        public RequestAnotherRegisterVerificationCodeEnum RequestAnotherRegisterVerificationCode(string phoneNumber)
+        {
+            var user = FindUserByPhoneNumber(phoneNumber);
+            if (user == null)
+            {
+                return RequestAnotherRegisterVerificationCodeEnum.UserNotFound;
+            }
+            if (user.PhoneNumberConfirmed)
+            {
+                return RequestAnotherRegisterVerificationCodeEnum.UserIsActive;
+            }
+            if (user.ConfirmationCodeDateTime.AddMinutes(1) > DateTime.Now)
+            {
+                return RequestAnotherRegisterVerificationCodeEnum.NotAllowed;
+            }
+            string newVerificationCode = UpdateUserVerificationCodeByPhoneNumber(phoneNumber);
+            bool res = _verificationSender.Send(phoneNumber, user.DisplayName, user.ConfirmationCode);
+            if (res == true)
+            {
+                return RequestAnotherRegisterVerificationCodeEnum.NotSend;
+            }
+            return RequestAnotherRegisterVerificationCodeEnum.Sent;
+        }
+
+
+        public User GetUserForLogin(string phoneNumber, string pasword)
+        {
+            return _context.Users.Where(x => x.PhoneNumber == phoneNumber && x.Password == PasswordHelper.EncodePasswordMd5(pasword)).FirstOrDefault();
+        }
+
         #endregion
 
 
@@ -242,8 +294,6 @@ namespace Tizhoshan.ServiceLayer.Services.Implementations
 
 
 
-
-
         //        public BaseChangePasswordSendSMSEnum BaseChangePasswordSendSms(BaseChangePasswordViewModel model)
         //        {
         //            var user = FindUserByUserName(model.UserName);
@@ -310,25 +360,7 @@ namespace Tizhoshan.ServiceLayer.Services.Implementations
         //        {
         //            return _context.AplicationUser_TBL.Where(x => x.UserName == userName && x.IssDeleted == false).FirstOrDefault();
         //        }
-        //        public ConfirmPhoneRegisterEnum RegisterConfirmPhone(ConfirmPhoneViewModel model)
-        //        {
-        //            var iccuser = _context.AplicationUser_TBL.Where
-        //                (x => x.UserName == model.PhoneNumber
-        //                && x.ConfirmationCode == model.Code
-        //               ).FirstOrDefault();
-        //            if (iccuser != null)
-        //            {
-        //                if (iccuser.ConfirmationCodeDateTime.AddMinutes(5) < DateTime.Now)
-        //                {
-        //                    return ConfirmPhoneRegisterEnum.Expierd;
-        //                }
-        //                iccuser.PhoneNumberConfirmed = true;
-        //                iccuser.ConfirmationCode = GenereateConfirmationCode();
-        //                UpdateUser(iccuser);
-        //                return ConfirmPhoneRegisterEnum.Confirmed;
-        //            }
-        //            return ConfirmPhoneRegisterEnum.ErrorConfirmed;
-        //        }
+
         //        public AplicationUser FindUserById(long id)
         //        {
         //            return _context.AplicationUser_TBL.Find(id);
@@ -343,29 +375,7 @@ namespace Tizhoshan.ServiceLayer.Services.Implementations
         //            UpdateUser(user);
         //            return newVerificationCode;
         //        }
-        //        public RequestAnotherRegisterVerificationCodeEnum RequestAnotherRegisterVerificationCode(string userName)
-        //        {
-        //            var user = FindUserByUserName(userName);
-        //            if (user == null)
-        //            {
-        //                return RequestAnotherRegisterVerificationCodeEnum.UserNotFound;
-        //            }
-        //            if (user.PhoneNumberConfirmed)
-        //            {
-        //                return RequestAnotherRegisterVerificationCodeEnum.UserIsActive;
-        //            }
-        //            if (user.ConfirmationCodeDateTime.AddMinutes(1) > DateTime.Now)
-        //            {
-        //                return RequestAnotherRegisterVerificationCodeEnum.NotAllowed;
-        //            }
-        //            string newVerificationCode = UpdateUserVerificationCodeByUserName(userName);
-        //            int res = _iVerificationSender.Send(newVerificationCode, userName, 1);
-        //            if (res == -1)
-        //            {
-        //                return RequestAnotherRegisterVerificationCodeEnum.NotSend;
-        //            }
-        //            return RequestAnotherRegisterVerificationCodeEnum.Sent;
-        //        }
+
         //        public int RegisterUserFromAdmin(RegisterViewModel model)
         //        {
         //            if (_context.AplicationUser_TBL.Any(z => z.UserName == model.PhoneNumber))
@@ -775,10 +785,7 @@ namespace Tizhoshan.ServiceLayer.Services.Implementations
         //            _context.AplicationUser_TBL.Update(user);
         //            _context.SaveChanges();
         //        }
-        //public AplicationUser GetUserForLogin(string userName, string pasword)
-        //{
-        //    return _context.AplicationUser_TBL.Where(x => x.UserName == userName && x.Password == PasswordHelper.EncodePasswordMd5(pasword)).FirstOrDefault();
-        //}
+
         //public UserInfoViewModel GetUserInfoVeiwModel(string userName)
         //{
         //    return _context.AplicationUser_TBL.Where(x => x.UserName == userName).Select(x => new UserInfoViewModel()

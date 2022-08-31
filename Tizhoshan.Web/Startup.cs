@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,8 +32,45 @@ namespace Tizhoshan.Web
         {
             services.AddControllersWithViews();
 
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
+            }).AddCookie(options =>
+            {
+                options.LoginPath = "/Login";
+                options.LogoutPath = "/SignOut";
+                options.ExpireTimeSpan = TimeSpan.FromDays(14);
+                options.Cookie.Name = "TizhoshanIdentity";
+            });
+
+            services.Configure<IdentityOptions>(options =>
+            {
+                // Default Lockout settings.
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                options.Lockout.MaxFailedAccessAttempts = 10;
+                options.Lockout.AllowedForNewUsers = true;
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequiredUniqueChars = 0;
+                options.Password.RequireUppercase = false;
+                options.Password.RequiredLength = 5;
+            });
+            services.Configure<SecurityStampValidatorOptions>(x =>
+            {
+                x.ValidationInterval = TimeSpan.Zero;
+            });
+
             services.AddDbContext<ApplicationDbContext>(option => option.UseSqlServer(Configuration.GetConnectionString("MyConenctionString")));
 
+
+            services.ConfigureApplicationCookie(option => option.LoginPath = "/Login");
+            services.ConfigureApplicationCookie(option => option.LogoutPath = "/SignOut");
+            services.ConfigureApplicationCookie(option => option.AccessDeniedPath = "/AccessDenied");
 
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<iVerificationSender, VerificationSender>();

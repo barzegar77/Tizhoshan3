@@ -13,5 +13,8 @@ namespace Tizhoshan.ServiceLayer.Services.Interfaces
         PhoneNumberInUseEnum IsExistsPhoneNumber(string phoneNumber);
         RegisterUserConditionsEnum RegisterUser(RegisterViewModel model, string test = "");
         string UpdateUserVerificationCodeByPhoneNumber(string phoneNumber);
+        ConfirmPhoneRegisterEnum RegisterConfirmPhone(ConfirmPhoneViewModel model);
+        RequestAnotherRegisterVerificationCodeEnum RequestAnotherRegisterVerificationCode(string phoneNumber);
+        User GetUserForLogin(string phoneNumber, string pasword);
     }
 }

@@ -1,190 +1,81 @@
-﻿@using Tizhoshan.ServiceLayer.DTOs.AccountViewModels 
+﻿@using Tizhoshan.ServiceLayer.DTOs.AccountViewModels
 @model RegisterViewModel
 
 @{
-    ViewData["Title"] = "ثبت نام";
+    ViewData["Title"] = "ایجاد حساب کاربری";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<header data-anim="fade" data-add-bg="" class="header -base js-header">
 
+<section>
+    <div class="container">
+        <div class="row justify-content-center">
 
-    <div class="header__container py-10">
-        <div class="row justify-between items-center">
-
-            <div class="col-auto">
-                <div class="header-left">
-
-                    <div class="header__logo ">
-                        <a asp-area="" asp-controller="Home" asp-action="Index">
-                            <img src="/themes/educrat/img/general/logo.svg" alt="logo">
-                        </a>
-                    </div>
-
-                </div>
-            </div>
-
-
-            <div class="col-auto">
-                <div class="header-right d-flex items-center">
-
-                    <div class="header-menu js-mobile-menu-toggle ">
-                        <div class="header-menu__content">
-                            <div class="mobile-bg js-mobile-bg"></div>
-
-                            <div class="d-none xl:d-flex items-center px-20 py-20 border-bottom-light">
-                                <a asp-area="" asp-controller="Account" asp-action="Login" class="text-dark-1">ورود به حساب کاربری</a>
+            <div class="col-xl-7 col-lg-8 col-md-12 col-sm-12">
+                <form>
+                    <div class="crs_log_wrap">
+                        <div class="crs_log__thumb">
+                            <img src="/themes/skillup/img/banner-2.jpg" class="img-fluid" alt="" />
+                        </div>
+                        <div class="crs_log__caption">
+                            <div class="rcs_log_123">
+                                <div class="rcs_ico"><i class="fas fa-user"></i></div>
                             </div>
 
-                            <div class="menu js-navList">
-                                <ul class="menu__nav text-dark-1 -is-active">
-
-                                    <li class="menu-item-has-children">
-                                        <a asp-area="" asp-controller="Home" asp-action="Index">
-                                            صفحه اصلی
-                                        </a>
-                                    </li>
-
-                                    <li class="menu-item-has-children">
-                                        <a href="#">
-                                            دوره ها
-                                        </a>
-                                    </li>
-
+                            <div class="rcs_log_124">
+                                <div class="Lpo09"><h4>ایجاد حساب کاربری</h4></div>
+                                <div class="form-group row mb-0">
+                                    <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                        <div class="form-group">
+                                            <label>نام/ نام کاربری</label>
+                                            <input type="text" class="form-control" placeholder="نام/ نام کاربری" />
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                        <div class="form-group">
+                                            <label>نام خانوادگی</label>
+                                            <input type="text" class="form-control" placeholder="نام خانوادگی" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>ایمیل</label>
+                                    <input type="text" class="form-control" placeholder="support@example.com" />
+                                </div>
+                                <div class="form-group">
+                                    <label>رمز عبور</label>
+                                    <input type="text" class="form-control" placeholder="*******" />
+                                </div>
+                                <div class="form-group">
+                                    <button type="button" class="btn full-width btn-md theme-bg text-white">ثبت نام</button>
+                                </div>
+                            </div>
+                            <div class="rcs_log_125">
+                                <span>یا ورود از طریق شبکه های اجتماعی</span>
+                            </div>
+                            <div class="rcs_log_126">
+                                <ul class="social_log_45 row">
+                                    <li class="col-xl-4 col-lg-4 col-md-4 col-4"><a href="javascript:void(0);" class="sl_btn"><i class="ti-facebook text-info"></i>Facebook</a></li>
+                                    <li class="col-xl-4 col-lg-4 col-md-4 col-4"><a href="javascript:void(0);" class="sl_btn"><i class="ti-google text-danger"></i>Google</a></li>
+                                    <li class="col-xl-4 col-lg-4 col-md-4 col-4"><a href="javascript:void(0);" class="sl_btn"><i class="ti-twitter theme-cl"></i>Twitter</a></li>
                                 </ul>
                             </div>
-
-                            <div class="mobile-footer px-20 py-20 border-top-light js-mobile-footer">
-                                <div class="mobile-footer__number">
-                                    <div class="text-17 fw-500 text-dark-1">تماس با مدیر</div>
-                                    <div class="text-17 fw-500 text-purple-1">09171969206</div>
-                                </div>
-
-                                <div class="lh-2 mt-10">
-                                    <div>Tizhoshan.com@gmail.com</div>
-                                </div>
-
-                                @*<div class="mobile-socials mt-10">
-
-                                    <a href="#" class="d-flex items-center justify-center rounded-full size-40">
-                                        <i class="fa fa-facebook"></i>
-                                    </a>
-
-                                    <a href="#" class="d-flex items-center justify-center rounded-full size-40">
-                                        <i class="fa fa-twitter"></i>
-                                    </a>
-
-                                    <a href="#" class="d-flex items-center justify-center rounded-full size-40">
-                                        <i class="fa fa-instagram"></i>
-                                    </a>
-
-                                    <a href="#" class="d-flex items-center justify-center rounded-full size-40">
-                                        <i class="fa fa-linkedin"></i>
-                                    </a>
-
-                                </div>*@
-                            </div>
                         </div>
-
-                        <div class="header-menu-close" data-el-toggle=".js-mobile-menu-toggle">
-                            <div class="size-40 d-flex items-center justify-center rounded-full bg-white">
-                                <div class="icon-close text-dark-1 text-16"></div>
-                            </div>
+                        <div class="crs_log__footer d-flex justify-content-between">
+                            <div class="fhg_45"><p class="musrt">آیا حساب  کاربری دارید؟ <a href="login.html" class="theme-cl">ورود</a></p></div>
+                            <div class="fhg_45"><p class="musrt"><a href="forgot.html" class="text-danger">آیا رمز عبور خود را فراموش کرده اید؟</a></p></div>
                         </div>
-
-                        <div class="header-menu-bg"></div>
                     </div>
-
-
-                    <div class="mr-30">
-
-                        <div class="d-none xl:d-block ml-20">
-                            <button class="text-dark-1 items-center" data-el-toggle=".js-mobile-menu-toggle">
-                                <i class="text-11 icon icon-mobile-menu"></i>
-                            </button>
-                        </div>
-
-                    </div>
-
-                    <div class="header-right__buttons md:d-none">
-                        <a href="#" class="button -sm -rounded -dark-1 text-white">ثبت نام</a>
-                    </div>
-                </div>
+                </form>
             </div>
 
         </div>
     </div>
-</header>
+</section>
 
 
-<div class="content-wrapper  js-content-wrapper">
+@section Scripts{
 
-    <section class="form-page">
-        <div class="form-page__img bg-dark-1">
-            <div class="form-page-composition">
-                <div class="-bg"><img data-move="30" class="js-mouse-move" src="/themes/educrat/img/login/bg.png" alt="bg"></div>
-                <div class="-el-1"><img data-move="20" class="js-mouse-move" src="/themes/educrat/img/home-9/hero/bg.png" alt="image"></div>
-                <div class="-el-2"><img data-move="40" class="js-mouse-move" src="/themes/educrat/img/home-9/hero/1.png" alt="icon"></div>
-                <div class="-el-3"><img data-move="40" class="js-mouse-move" src="/themes/educrat/img/home-9/hero/2.png" alt="icon"></div>
-                <div class="-el-4"><img data-move="40" class="js-mouse-move" src="/themes/educrat/img/home-9/hero/3.png" alt="icon"></div>
-            </div>
-        </div>
-
-        <div class="form-page__content lg:py-50">
-            <div class="container">
-                <div class="row justify-center items-center">
-                    <div class="col-xl-8 col-lg-9">
-                        <div class="px-50 py-50 md:px-25 md:py-25 bg-white shadow-1 rounded-16">
-                            <h3 class="text-30 lh-13">ثبت نام در تیزهوشان</h3>
-                            <p class="mt-10">آیا قبلا ثبت نام کرده اید؟ <a asp-area="" asp-controller="Account" asp-action="Login" class="text-purple-1">وارد شوید</a></p>
-
-                            <form method="post" class="contact-form respondForm__form row y-gap-20 pt-30">
-                                <div class="col-lg-6">
-                                    <label class="text-16 lh-1 fw-500 text-dark-1 mb-10">شماره موبایل *</label>
-                                    <input asp-for="PhoneNumber" >
-                                    <span asp-validation-for="PhoneNumber"></span>
-                                </div>
-                                <div class="col-lg-6">
-                                    <label class="text-16 lh-1 fw-500 text-dark-1 mb-10">نام و نام خانوادگی *</label>
-                                    <input asp-for="DisplayName" type="text">
-                                    <span asp-validation-for="DisplayName"></span>
-                                </div>
-                                <div class="col-lg-6">
-                                    <label class="text-16 lh-1 fw-500 text-dark-1 mb-10">رمز عبور *</label>
-                                    <input asp-for="Password" type="password">
-                                    <span asp-validation-for="Password"></span>
-                                </div>
-                                <div class="col-lg-6">
-                                    <label class="text-16 lh-1 fw-500 text-dark-1 mb-10">تکرار رمز عبور *</label>
-                                    <input asp-for="RePassword" type="password">
-                                    <span asp-validation-for="RePassword"></span>
-                                </div>
-                                <div class="col-12">
-                                    <button type="submit" class="button -md -green-1 text-dark-1 fw-500 w-1/1">
-                                        ثبت نام
-                                    </button>
-                                </div>
-                            </form>
-
-                            @*<div class="lh-12 text-dark-1 fw-500 text-center mt-20">Or sign in using</div>
-
-                            <div class="d-flex x-gap-20 items-center justify-between pt-20">
-                                <div><button class="button -sm px-24 py-20 -outline-blue-3 text-blue-3 text-14">Log In via Facebook</button></div>
-                                <div><button class="button -sm px-24 py-20 -outline-red-3 text-red-3 text-14">Log In via Google+</button></div>
-                            </div>*@
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-
-</div>
-
-
-@section Scripts{ 
-
-<partial name="_ValidationScriptsPartial" />
+    <partial name="_ValidationScriptsPartial" />
 
 }

@@ -24,8 +24,4 @@
     <ProjectReference Include="..\Tizhoshan.Service\Tizhoshan.ServiceLayer.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwwroot\themes\educrat\" />
-  </ItemGroup>
-
 </Project>
