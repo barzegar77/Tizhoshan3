@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Tizhoshan.DataLayer.Models.Courses;
 
 namespace Tizhoshan.DataLayer.Models.Account
 {
@@ -43,6 +45,19 @@ namespace Tizhoshan.DataLayer.Models.Account
         [Display(Name = "آواتار")]
         public string AvatarName { get; set; }
 
+
+
+        #region rel
+
+        public int? CourseTeacherId { get; set; }
+        [ForeignKey("CourseTeacherId")]
+        public CourseTeacher CourseTeacher { get; set; }
+
+        public IEnumerable<CourseComment> CourseComments { get; set; }
+
+        public IEnumerable<UserCourse> UserCourses { get; set; }
+
+        #endregion
 
     }
 }

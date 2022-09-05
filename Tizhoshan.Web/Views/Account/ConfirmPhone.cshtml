@@ -6,52 +6,47 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<partial name="_Header" />
+<!-- ============================ Login Wrap ================================== -->
+<section>
+    <div class="container">
+        <div class="row justify-content-center">
 
-<div class="content-wrapper  js-content-wrapper">
+            <div class="col-xl-7 col-lg-8 col-md-12 col-sm-12">
+                <form method="post" action="/ConfirmPhone">
+                    <input type="hidden" asp-for="PhoneNumber" value="@ViewBag.phoneNumber" />
+                    <div class="crs_log_wrap">
+                        <div class="crs_log__thumb">
+                            <img src="/themes/skillup/img/banner-2.jpg" class="img-fluid" alt="" />
+                        </div>
+                        <div class="crs_log__caption">
+                            <div class="rcs_log_123">
+                                <div class="rcs_ico"><i class="fas fa-lock"></i></div>
+                            </div>
 
-    <section class="form-page js-mouse-move-container" style="display:grid;">
-
-        <center>
-            <div class="form-page__content">
-                <div class="container">
-                    <div class="row justify-center items-center">
-                        <div class="col-xl-6 col-lg-8">
-                            <div class="px-50 py-50 md:px-25 md:py-25 bg-white shadow-1 rounded-16">
-                                <h3 class="text-30 lh-13">تایید حساب کاربری</h3>
-
-                                <form method="post" action="/ConfirmPhone" class="contact-form respondForm__form row y-gap-20 pt-30">
-                                    <input hidden asp-for="PhoneNumber" value="@ViewBag.phoneNumber" />
-                                    <div class="col-12">
-                                        <label class="text-16 lh-1 fw-500 text-dark-1 mb-10">کد تایید:</label>
-                                        <input type="text" asp-for="Code">
-                                        <span asp-validation-for="Code" class="text-danger"></span>
-                                    </div>
-                                    <div class="col-12">
-                                        <button type="submit" class="button -md -green-1 text-dark-1 fw-500 w-1/1">
-                                            ثبت کد
-                                        </button>
-                                    </div>
-                                </form>
-
+                            <div class="rcs_log_124">
+                                <div class="Lpo09"><h4>تایید حساب کاربری</h4></div>
+                                <div class="form-group">
+                                    <label>کد تایید را وارد کنید</label>
+                                    <input asp-for="Code" type="text" class="form-control"  />
+                                    <span asp-validation-for="Code" class="text-danger"></span>
+                                </div>
+                                <div class="form-group">
+                                    <button type="submit" class="btn full-width btn-md theme-bg text-white">تایید کد</button>
+                                </div>
                             </div>
                         </div>
+                        <div class="crs_log__footer d-flex justify-content-between">
+                            <div class="fhg_45"><p class="musrt">کد تایید برای شما ارسال نشد؟  <a asp-controller="Account" asp-action="RequestAnotherRegisterVerificationCode" asp-route-id="@ViewBag.phoneNumber" class="theme-cl"> ارسال مجدد کد تایید</a></p></div>
+                        </div>
                     </div>
-                </div>
+                </form>
             </div>
-        </center>
 
+        </div>
+    </div>
+</section>
+<!-- ============================ Login Wrap ================================== -->
 
-
-
-
-    </section>
-
-
-</div>
-
-
-<partial name="_Footer" />
 
 
 @section Scripts{

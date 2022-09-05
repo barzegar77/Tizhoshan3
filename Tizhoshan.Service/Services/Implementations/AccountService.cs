@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Tizhoshan.DataLayer.Context;
 using Tizhoshan.DataLayer.Models.Account;
 using Tizhoshan.ServiceLayer.DTOs.AccountViewModels;
 using Tizhoshan.ServiceLayer.ENUMs.UserENUMs;
 using Tizhoshan.ServiceLayer.Services.Interfaces;
-using Tizhoshan.ServiceLayer.Services.PublicClasses.Security;
-using Tizhoshan.ServiceLayer.Services.PublicClasses.Sender;
+using Tizhoshan.ServiceLayer.Services.Public;
+using Tizhoshan.ServiceLayer.Services.Security;
+using Tizhoshan.ServiceLayer.Services.Sender;
 
 namespace Tizhoshan.ServiceLayer.Services.Implementations
 {
@@ -36,6 +38,18 @@ namespace Tizhoshan.ServiceLayer.Services.Implementations
             _context.SaveChanges();
         }
 
+
+        public UserInfoViewModel GetUserPersonalInformationToShow(string phoneNumber)
+        {
+            var user = _context.Users.Where(x => x.PhoneNumber == phoneNumber).SingleOrDefault();
+            return new UserInfoViewModel()
+            {
+                AvatarName = user.AvatarName,
+                CreateDate = MyDateTime.GetShamsiDateFromGregorian(user.CreateDate),
+                DisplayName = user.DisplayName,
+                PhoneNumber = user.PhoneNumber
+            };
+        }
 
 
         #region account
@@ -107,7 +121,7 @@ namespace Tizhoshan.ServiceLayer.Services.Implementations
                         PhoneNumber = model.PhoneNumber,
                         Password = PasswordHelper.EncodePasswordMd5(model.Password),
                         CreateDate = DateTime.Now,
-                        AvatarName = "Default.jpg",
+                        AvatarName = "default.png",
                         DisplayName = model.DisplayName,
                         IsDeleted = false,
                         ConfirmationCode = GenereateConfirmationCode(),
@@ -203,6 +217,141 @@ namespace Tizhoshan.ServiceLayer.Services.Implementations
             return _context.Users.Where(x => x.PhoneNumber == phoneNumber && x.Password == PasswordHelper.EncodePasswordMd5(pasword)).FirstOrDefault();
         }
 
+
+
+        public ForgotPasswordSendSMSEnum ForgotPasswordSendSms(ForgotPasswordViewModel model)
+        {
+            var user = FindUserByPhoneNumber(model.PhoneNumber);
+            if (user == null)
+            {
+                return ForgotPasswordSendSMSEnum.Error;
+            }
+            if (user.IsDeleted == true)
+            {
+                return ForgotPasswordSendSMSEnum.NotAllowed;
+            }
+            if (user.PhoneNumberConfirmed == false)
+            {
+                return ForgotPasswordSendSMSEnum.UnconfirmedPhone;
+            }
+            if (user.ConfirmationCodeDateTime.AddMinutes(1) > DateTime.Now)
+            {
+                return ForgotPasswordSendSMSEnum.OneMiniuteError;
+            }
+            string verificationCode = UpdateUserVerificationCodeByPhoneNumber(model.PhoneNumber);
+            _verificationSender.Send(user.PhoneNumber, user.DisplayName, user.ConfirmationCode);
+            return ForgotPasswordSendSMSEnum.Sent;
+        }
+
+
+        public RequestAnotherChangePasswordVerificationCodeEnum RequestAnotherChangePasswordVerificationCode(string phoneNumber)
+        {
+            var user = FindUserByPhoneNumber(phoneNumber);
+            if (user == null)
+            {
+                return RequestAnotherChangePasswordVerificationCodeEnum.UserNotFound;
+            }
+
+            if (user.ConfirmationCodeDateTime.AddMinutes(1) > DateTime.Now)
+            {
+                return RequestAnotherChangePasswordVerificationCodeEnum.NotAllowed;
+            }
+            string newVerificationCode = UpdateUserVerificationCodeByPhoneNumber(phoneNumber);
+            _verificationSender.Send(user.PhoneNumber, user.DisplayName, user.ConfirmationCode);
+            return RequestAnotherChangePasswordVerificationCodeEnum.Sent;
+        }
+
+
+
+        public bool ChangePassword(ChangePasswordViewModel model)
+        {
+            var user = FindUserByPhoneNumber(model.PhoneNumber);
+
+            if (model != null)
+            {
+                user.Password = PasswordHelper.EncodePasswordMd5(model.Password);
+                UpdateUser(user);
+                return true;
+            }
+            return false;
+
+        }
+
+        #endregion
+
+
+
+        #region AdminPanel
+
+        public Tuple<List<UsersListForAdminViewModel>, int, int> GetUsersListForAdmin(string search, int page)
+        {
+            IQueryable<User> res = _context.Users.OrderByDescending(x => x.CreateDate).Where(x => x.IsDeleted == false);
+            if (!string.IsNullOrEmpty(search))
+            {
+                res = res.Where(x => x.PhoneNumber.Contains(search));
+            }
+            int take = 40;
+            int pagecount = 0;
+            if (res.Count() % take == 0)
+            {
+                pagecount = res.Count() / take;
+            }
+            else
+            {
+                pagecount = (res.Count() / take) + 1;
+            }
+
+            int skip = (page - 1) * take;
+
+            if (page > 1 && res.Count() < 1)
+            {
+                page = page - 1;
+            }
+            var outPut = res.Skip(skip).Take(take).Select(x => new UsersListForAdminViewModel()
+            {
+                DisplayName = x.DisplayName,
+                PhoneNumber = x.PhoneNumber,
+                PhoneNumberConfirmed = x.PhoneNumberConfirmed,
+                CreateDate = MyDateTime.GetShamsiDateFromGregorian(x.CreateDate, false)
+            }).ToList();
+
+
+            return Tuple.Create(outPut, pagecount, page);
+        }
+
+
+
+        public int RegisterUserFromAdmin(CreateUserViewModel model)
+        {
+            if (_context.Users.Any(z => z.PhoneNumber == model.PhoneNumber))
+            {
+                return -100;
+            }
+            else
+            {
+                User user = new User();
+                user.PhoneNumber = model.PhoneNumber.Trim();
+                user.DisplayName = model.DisplayName;
+                user.CreateDate = DateTime.Now;
+                user.PhoneNumberConfirmed = true;
+                user.AvatarName = "default.png";
+                user.ConfirmationCode = "12345";
+                user.ConfirmationCodeDateTime = DateTime.Now;
+                user.IsDeleted = false;
+                user.Password = PasswordHelper.EncodePasswordMd5(model.Password.Trim());
+                try
+                {
+                    _context.Users.Add(user);
+                    _context.SaveChanges();
+                    return user.UserId;
+                }
+                catch
+                {
+                    return -1;
+                }
+            }
+        }
+
         #endregion
 
 
@@ -294,50 +443,9 @@ namespace Tizhoshan.ServiceLayer.Services.Implementations
 
 
 
-        //        public BaseChangePasswordSendSMSEnum BaseChangePasswordSendSms(BaseChangePasswordViewModel model)
-        //        {
-        //            var user = FindUserByUserName(model.UserName);
-        //            if (user == null)
-        //            {
-        //                return BaseChangePasswordSendSMSEnum.Error;
-        //            }
-        //            if (user.Status == false)
-        //            {
-        //                return BaseChangePasswordSendSMSEnum.NotAllowed;
-        //            }
-        //            if (user.PhoneNumberConfirmed == false)
-        //            {
-        //                return BaseChangePasswordSendSMSEnum.UnconfirmedPhone;
-        //            }
-        //            if (user.ConfirmationCodeDateTime.AddMinutes(1) > DateTime.Now)
-        //            {
-        //                return BaseChangePasswordSendSMSEnum.OneMiniuteError;
-        //            }
-        //            string verificationCode = UpdateUserVerificationCodeByUserName(model.UserName);
-        //            _iVerificationSender.Send(verificationCode, model.UserName, 2);
-        //            return BaseChangePasswordSendSMSEnum.Sent;
-        //        }
-        //        public RequestAnotherChangePasswordVerificationCodeEnum RequestAnotherChangePasswordVerificationCode(string userName)
-        //        {
-        //            var user = FindUserByUserName(userName);
-        //            if (user == null)
-        //            {
-        //                return RequestAnotherChangePasswordVerificationCodeEnum.UserNotFound;
-        //            }
 
-        //            if (user.ConfirmationCodeDateTime.AddMinutes(1) > DateTime.Now)
-        //            {
-        //                return RequestAnotherChangePasswordVerificationCodeEnum.NotAllowed;
-        //            }
-        //            string newVerificationCode = UpdateUserVerificationCodeByUserName(userName);
-        //            int res = _iVerificationSender.Send(newVerificationCode, userName, 1);
 
-        //            if (res == -1)
-        //            {
-        //                return RequestAnotherChangePasswordVerificationCodeEnum.Error;
-        //            }
-        //            return RequestAnotherChangePasswordVerificationCodeEnum.Sent;
-        //        }
+
         //        public UserNameInUseEnum IsExistsUserName(string userName)
         //        {
         //            var user = FindUserByUserName(userName);
@@ -365,45 +473,18 @@ namespace Tizhoshan.ServiceLayer.Services.Implementations
         //        {
         //            return _context.AplicationUser_TBL.Find(id);
         //        }
-        //        public string UpdateUserVerificationCodeByUserName(string userName)
-        //        {
-        //            var user = FindUserByUserName(userName);
-        //            if (user == null) return "";
-        //            string newVerificationCode = GenereateConfirmationCode();
-        //            user.ConfirmationCode = newVerificationCode;
-        //            user.ConfirmationCodeDateTime = DateTime.Now;
-        //            UpdateUser(user);
-        //            return newVerificationCode;
-        //        }
+        //public string UpdateUserVerificationCodeByPhoneNumber(string phoneNumber)
+        //{
+        //    var user = FindUserByPhoneNumber(phoneNumber);
+        //    if (user == null) return "";
+        //    string newVerificationCode = GenereateConfirmationCode();
+        //    user.ConfirmationCode = newVerificationCode;
+        //    user.ConfirmationCodeDateTime = DateTime.Now;
+        //    UpdateUser(user);
+        //    return newVerificationCode;
+        //}
 
-        //        public int RegisterUserFromAdmin(RegisterViewModel model)
-        //        {
-        //            if (_context.AplicationUser_TBL.Any(z => z.UserName == model.PhoneNumber))
-        //            {
-        //                return -100;
-        //            }
-        //            else
-        //            {
-        //                AplicationUser user = new AplicationUser();
-        //                user.PhoneNumber = model.PhoneNumber.Trim();
-        //                user.UserName = model.PhoneNumber.Trim();
-        //                user.DateRegistered = DateTime.Now;
-        //                user.PhoneNumberConfirmed = true;
-        //                user.NikName = model.NikName;
-        //                user.Status = true;
-        //                user.Password = PasswordHelper.EncodePasswordMd5(model.Password.Trim());
-        //                try
-        //                {
-        //                    _context.AplicationUser_TBL.Add(user);
-        //                    _context.SaveChanges();
-        //                    return user.AplicationUserId;
-        //                }
-        //                catch
-        //                {
-        //                    return -1;
-        //                }
-        //            }
-        //        }
+
         //        public string GetPhoneNumbyId(int id)
         //        {
         //            if (_context.AplicationUser_TBL.Any(x => x.AplicationUserId == id))
@@ -441,34 +522,7 @@ namespace Tizhoshan.ServiceLayer.Services.Implementations
         //        {
         //            return _context.AplicationUser_TBL.Any(x => x.ConfirmationCode == code && x.AplicationUserId == GetIdByPhone(phone) && x.DateRegistered < DateTime.Now.AddMinutes(10));
         //        }
-        //        public BaseChangePasswordFunctionEnum BaseChangePasswordFunction(BaseChangePasswordEnterNewViewModel model)
-        //        {
-        //            var user = FindUserByUserName(model.UserName);
-        //            if (user == null)
-        //            {
-        //                return BaseChangePasswordFunctionEnum.UserNotFound;
-        //            }
-        //            if (user.ConfirmationCodeDateTime.AddMinutes(5) < DateTime.Now)
-        //            {
-        //                return BaseChangePasswordFunctionEnum.CodeExspierd;
-        //            }
-        //            if (user.ConfirmationCode != model.VerificationCode)
-        //            {
-        //                return BaseChangePasswordFunctionEnum.InvalidCode;
-        //            }
-        //            try
-        //            {
-        //                user.Password = PasswordHelper.EncodePasswordMd5(model.Password);
-        //                UpdateUserVerificationCodeByUserName(model.UserName);
-        //                UpdateUser(user);
-        //                return BaseChangePasswordFunctionEnum.Changed;
-        //            }
-        //            catch
-        //            {
-        //                return BaseChangePasswordFunctionEnum.Error;
-        //            }
 
-        //        }
         //        public bool ConfirmPhoneNumber(string phone, string code)
         //        {
         //            if (IsExistThisCodeForThisPhone(phone, code))
@@ -516,17 +570,7 @@ namespace Tizhoshan.ServiceLayer.Services.Implementations
         //            return _context.AplicationUser_TBL.Any(x => x.UserName == UserName && !string.IsNullOrEmpty(x.FirstName) && !string.IsNullOrEmpty(x.LastName));
 
         //        }
-        //        public SimplePersonalInformation GetUserPersonalInformationToShow(string usernam)
-        //        {
-        //            var user = _context.AplicationUser_TBL.Where(x => x.UserName == usernam).SingleOrDefault();
-        //            return new SimplePersonalInformation()
-        //            {
-        //                Email = user.Email,
-        //                FirstName = user.FirstName,
-        //                LastName = user.LastName,
-        //                UserName = user.UserName,
-        //            };
-        //        }
+
         //        public void UpdatePersonalInformation(SimplePersonalInformation model)
         //        {
         //            var user = _context.AplicationUser_TBL.Where(x => x.UserName == model.UserName).SingleOrDefault();
@@ -578,43 +622,9 @@ namespace Tizhoshan.ServiceLayer.Services.Implementations
         //        {
         //            return _context.AplicationUser_TBL.Where(x => x.AplicationUserId == userId).FirstOrDefault();
         //        }
-        //        public Tuple<List<AllUserViewModel>, int, int> GetAlluserForAdmin(string search, int page)//GetSystemUserForAdmin
-        //        {
-        //            IQueryable<AplicationUser> res = _context.AplicationUser_TBL.OrderByDescending(x => x.DateRegistered).Where(x => x.IssDeleted == false);
-        //            if (!string.IsNullOrEmpty(search))
-        //            {
-        //                res = res.Where(x => x.UserName.Contains(search));
-        //            }
-        //            int take = 40;
-        //            int pagecount = 0;
-        //            if (res.Count() % take == 0)
-        //            {
-        //                pagecount = res.Count() / take;
-        //            }
-        //            else
-        //            {
-        //                pagecount = (res.Count() / take) + 1;
-        //            }
-
-        //            int skip = (page - 1) * take;
-
-        //            if (page > 1 && res.Count() < 1)
-        //            {
-        //                page = page - 1;
-        //            }
-        //            var outPut = res.Skip(skip).Take(take).Select(x => new AllUserViewModel()
-        //            {
-        //                FirstName = x.FirstName,
-        //                LastName = x.LastName,
-        //                PhoneNumber = x.UserName,
-        //                ConfirmedPhoneNumber = x.PhoneNumberConfirmed,
-        //                AplicationUserId = x.AplicationUserId,
-        //                status = x.Status
-        //            }).ToList();
 
 
-        //            return Tuple.Create(outPut, pagecount, page);
-        //        }
+
         //        public Tuple<List<AllUserViewModel>, int, int> GetSystemUserForAdmin(string search, int page)
         //        {
         //            //IQueryable<AplicationUser> res = _context.AplicationUser_TBL;

@@ -1,0 +1,71 @@
+﻿@using Tizhoshan.ServiceLayer.DTOs.AccountViewModels
+@model CreateUserViewModel
+@{
+    ViewData["Title"] = "ایجاد کاربر";
+    Layout = "~/Areas/AdminPanel/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="content-body">
+
+    <div class="row justify-content-between align-items-center mb-10">
+        <div class="col-12 col-lg-auto mb-20">
+            <div class="page-heading">
+                <h3>مدیریت کاربران / ایجاد کاربر</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <div class="col-12 mb-30">
+            <div class="box">
+                <div class="box-head">
+                    <h3 class="title">ایجاد کاربر</h3>
+                </div>
+                <div class="box-body">
+                    <form method="post" enctype="multipart/form-data">
+
+                        <div class="row mbn-20">
+                            <div class="col-lg-12 col-12 mb-20">
+                                <label asp-for="DisplayName"></label>
+                                <input asp-for="DisplayName" type="text" class="form-control">
+                                <span asp-validation-for="DisplayName" class="text-danger"></span>
+                            </div>
+                            <div class="col-lg-12 col-12 mb-20">
+                                <label asp-for="PhoneNumber"></label>
+                                <input asp-for="PhoneNumber" type="text" class="form-control">
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+                            <div class="col-lg-12 col-12 mb-20">
+                                <label asp-for="Password"></label>
+                                <input asp-for="Password" type="text" class="form-control">
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                            </div>
+                            <div class="col-12 mt-10">
+                                <button type="submit" class="button button-primary button-outline">
+                                    ثبت کاربر
+                                </button>
+                                <a asp-area="AdminPanel" asp-controller="User" asp-action="UsersList"  class="button button-outline button-danger">
+                                    بازگشت
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+                <div class="box-foot">
+                    <p></p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+@section PanelScripts{
+
+<partial name="_ValidationScriptsPartial" />
+
+}

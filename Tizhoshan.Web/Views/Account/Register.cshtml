@@ -12,7 +12,7 @@
         <div class="row justify-content-center">
 
             <div class="col-xl-7 col-lg-8 col-md-12 col-sm-12">
-                <form>
+                <form method="post">
                     <div class="crs_log_wrap">
                         <div class="crs_log__thumb">
                             <img src="/themes/skillup/img/banner-2.jpg" class="img-fluid" alt="" />
@@ -27,45 +27,49 @@
                                 <div class="form-group row mb-0">
                                     <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12">
                                         <div class="form-group">
-                                            <label>نام/ نام کاربری</label>
-                                            <input type="text" class="form-control" placeholder="نام/ نام کاربری" />
+                                            <label>نام و نام خانوادگی</label>
+                                            <input asp-for="DisplayName" type="text" required="لطفا نام و نام خانوادگی را وارد کنید" class="form-control" placeholder="نام و نام خانوادگی" />
+                                            <span asp-validation-for="DisplayName" class="text-danger"></span>
                                         </div>
                                     </div>
                                     <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12">
                                         <div class="form-group">
-                                            <label>نام خانوادگی</label>
-                                            <input type="text" class="form-control" placeholder="نام خانوادگی" />
+                                            <label>شماره تلفن همراه</label>
+                                            <input asp-for="PhoneNumber" type="text" required="لطفا شماره تلفن همراه را وارد کنید" class="form-control" placeholder="09123456789" />
+                                            <span asp-validation-for="DisplayName" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group row mb-0">
+                                    <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                        <div class="form-group">
+                                            <label>رمز عبور</label>
+                                            <input asp-for="Password" type="password" required="لطفا رمز عبور را وارد کنید" class="form-control" />
+                                            <span asp-validation-for="Password" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                        <div class="form-group">
+                                            <label>تکرار رمز عبور</label>
+                                            <input asp-for="RePassword" type="password" required="لطفا تکرار رمز عبور را وارد کنید" class="form-control" />
+                                            <span asp-validation-for="RePassword" class="text-danger"></span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>ایمیل</label>
-                                    <input type="text" class="form-control" placeholder="support@example.com" />
-                                </div>
-                                <div class="form-group">
-                                    <label>رمز عبور</label>
-                                    <input type="text" class="form-control" placeholder="*******" />
-                                </div>
-                                <div class="form-group">
-                                    <button type="button" class="btn full-width btn-md theme-bg text-white">ثبت نام</button>
+                                    <button type="submit" class="btn full-width btn-md theme-bg text-white">ثبت نام</button>
                                 </div>
                             </div>
-                            <div class="rcs_log_125">
-                                <span>یا ورود از طریق شبکه های اجتماعی</span>
-                            </div>
-                            <div class="rcs_log_126">
-                                <ul class="social_log_45 row">
-                                    <li class="col-xl-4 col-lg-4 col-md-4 col-4"><a href="javascript:void(0);" class="sl_btn"><i class="ti-facebook text-info"></i>Facebook</a></li>
-                                    <li class="col-xl-4 col-lg-4 col-md-4 col-4"><a href="javascript:void(0);" class="sl_btn"><i class="ti-google text-danger"></i>Google</a></li>
-                                    <li class="col-xl-4 col-lg-4 col-md-4 col-4"><a href="javascript:void(0);" class="sl_btn"><i class="ti-twitter theme-cl"></i>Twitter</a></li>
-                                </ul>
-                            </div>
+
                         </div>
                         <div class="crs_log__footer d-flex justify-content-between">
-                            <div class="fhg_45"><p class="musrt">آیا حساب  کاربری دارید؟ <a href="login.html" class="theme-cl">ورود</a></p></div>
-                            <div class="fhg_45"><p class="musrt"><a href="forgot.html" class="text-danger">آیا رمز عبور خود را فراموش کرده اید؟</a></p></div>
+                            <div class="fhg_45"><p class="musrt">آیا حساب  کاربری دارید؟ <a asp-controller="Account" asp-action="login" class="theme-cl">ورود</a></p></div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-0 mr-3">
+                            <div class="fhg_45"><p class="musrt">ثبت نام شما به معنای پذیرش <a href="#" class="theme-cl">قوانین و شرایط آکادمی تیزهوشان </a> است.</p></div>
                         </div>
                     </div>
+
                 </form>
             </div>
 

@@ -9,10 +9,14 @@ namespace Tizhoshan.ServiceLayer.DTOs.AccountViewModels
 {
     public class ConfirmPhoneViewModel
     {
+
         [Required]
         public string PhoneNumber { get; set; }
 
-        [Required]
+ 
+        [Display(Name = "کد تایید")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        [StringLength(5, ErrorMessage = "{0} باید 5 کاراکتر باشد", MinimumLength = 5)]
         public string Code { get; set; }
     }
 }

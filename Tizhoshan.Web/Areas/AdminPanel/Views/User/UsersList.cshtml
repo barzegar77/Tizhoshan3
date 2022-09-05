@@ -1,0 +1,141 @@
+﻿
+@using Tizhoshan.ServiceLayer.DTOs.AccountViewModels
+
+@model Tuple<List<UsersListForAdminViewModel>, int, int>
+
+@{
+    ViewData["Title"] = "لیست کاربران";
+    Layout = "~/Areas/AdminPanel/Views/Shared/_AdminLayout.cshtml";
+}
+
+
+<div class="content-body">
+
+    <div class="row justify-content-between align-items-center mb-10">
+        <div class="col-12 col-lg-auto mb-20">
+            <div class="page-heading">
+                <h3 class="title">مدیریت کاربران / لیست کاربران</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <div class="col-12 mb-30">
+
+            <div class="box">
+                <div class="box-head">
+                    <h3 class="title">لیست کاربران</h3>
+                </div>
+                <div class="box-body">
+
+                    <form method="get" id="frmSearch" asp-action="UsersList">
+                        <input class="d-none" id="pageId" name="pageId" value="@Model.Item3" />
+                        <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper">
+
+                            <div class="dataTables_length">
+                                @*<label>Show
+                                <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0" class="">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                </select> entries
+                                </label>*@
+                            </div>
+
+                            <div class="dataTables_filter">
+                                <div class="form-group footable-filtering-search">
+                                    <div class="input-group">
+                                        <input type="text" name="searchString" id="searchString" class="form-control" value="@ViewBag.SearchString" placeholder="جستوجو بر اساس شماره موبایل">
+                                        <button type="submit" class="btn btn-primary">
+                                            <span class="fooicon fooicon-search"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <table class="table table-bordered data-table data-table-default dataTable dtr-inline" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info" style="width: 503px;">
+                                <thead>
+                                    <tr>
+                                        <th class="jsgrid-header-cell jsgrid-header-sortable text-light">نام نمایشی</th>
+                                        <th class="jsgrid-header-cell jsgrid-header-sortable text-light">شماره موبایل</th>
+                                        <th class="jsgrid-header-cell jsgrid-header-sortable text-light">وضعیت تایید</th>
+                                        <th class="jsgrid-header-cell jsgrid-header-sortable text-light">تاریخ ثبت نام</th>
+                                        <th class="jsgrid-header-cell jsgrid-control-field jsgrid-align-center">
+                                            <a asp-area="AdminPanel" asp-controller="User" asp-action="CreateUser" class="text-light text-success" title="افزودن آیتم">
+                                                <i class="fa fa-plus fa-2x"></i>
+                                            </a>
+                                        </th>
+                                    </tr>
+                                </thead>
+
+                                @foreach (var item in Model.Item1)
+                                {
+                                    <tr>
+                                        <td class="jsgrid-cell jsgrid-align-center">@item.DisplayName</td>
+                                        <td class="jsgrid-cell jsgrid-align-center">@item.PhoneNumber</td>
+                                        @if (item.PhoneNumberConfirmed == true)
+                                        {
+                                            <td class="jsgrid-cell jsgrid-align-center text-success">فعال</td>
+                                        }
+                                        else
+                                        {
+                                            <td class="jsgrid-cell jsgrid-align-center text-danger">غیر فعال</td>
+                                        }
+
+                                        <td class="jsgrid-cell jsgrid-align-center">@item.CreateDate</td>
+                                        <td class="jsgrid-cell jsgrid-align-center">
+                                            <a href="#" class="text-light " style="font-size: 20px;" title="ویرایش">
+                                                <i class="fa fa-edit fa-x text-primary"></i>
+                                            </a>
+                                            <a href="#" class="text-light" style="font-size: 20px;" title="حذف">
+                                                <i class="fa fa-trash fa-x text-danger"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+
+
+
+                                <tfoot>
+                                    @if (Model.Item2 > 1)
+                                    {
+                                        <tr class="footable-paging">
+                                            <td colspan="6">
+                                                <div class="footable-pagination-wrapper">
+                                                    <ul class="pagination">
+                                                        @for (int i = 1; i <= Model.Item2; i++)
+                                                        {
+                                                            <li class="footable-page visible @(i==Model.Item3?"active":"")">
+                                                                <a class="footable-page-link" href="javascript:void()" onclick="changePage(@i)">@i.ToString()</a>
+                                                            </li>
+                                                        }
+                                                    </ul>
+                                                    <div class="divider">
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+
+                                </tfoot>
+                            </table>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section PanelScripts{
+
+    <script>
+        function changePage(pageId) {
+            $("#pageId").val(pageId);
+            $("#frmSearch").submit();
+        }
+    </script>
+
+}

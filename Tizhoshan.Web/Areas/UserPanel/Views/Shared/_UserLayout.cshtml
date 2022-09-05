@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="author" content="Themezhub" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@ViewData["Title"]</title>
+
+    <!-- Custom CSS -->
+    <link href="/themes/skillup/css/styles.css" rel="stylesheet">
+
+    <!-- toastify -->
+    <link href="/lib/toastify/toastify.min.css" rel="stylesheet">
+</head>
+<body dir="rtl">
+
+    <!-- site messages -->
+    <div>
+        <input id="showMessage1" type="hidden" value="@TempData["success"]" />
+        <input id="showMessage2" type="hidden" value="@TempData["error"]" />
+        <input id="showMessage3" type="hidden" value="@TempData["info"]" />
+        <input id="showMessage4" type="hidden" value="@TempData["warning"]" />
+    </div>
+
+
+    @await Component.InvokeAsync("MainHeader")
+
+    <!-- ============================ Dashboard: Dashboard Start ================================== -->
+    <section class="gray pt-4">
+        <div class="container-fluid">
+
+            <div class="row">
+
+                @await Component.InvokeAsync("SideBar")
+
+                <div class="col-lg-9 col-md-9 col-sm-12">
+
+                    @RenderBody()
+
+                </div>
+
+
+            </div>
+        </div>
+    </section>
+    <!-- ============================ Dashboard: Dashboard End ================================== -->
+
+    @await Component.InvokeAsync("MainFooter")
+
+    <!-- JQuery -->
+    <script src="/themes/skillup/js/jquery.min.js"></script>
+    <!-- Toastify -->
+    <script src="/lib/toastify/toastify.js"></script>
+
+    <partial name="_SiteMessages" />
+
+    <script src="/themes/skillup/js/popper.min.js"></script>
+    <script src="/themes/skillup/js/bootstrap.min.js"></script>
+    <script src="/themes/skillup/js/select2.min.js"></script>
+    <script src="/themes/skillup/js/slick.js"></script>
+    <script src="/themes/skillup/js/moment.min.js"></script>
+    <script src="/themes/skillup/js/daterangepicker.js"></script>
+    <script src="/themes/skillup/js/summernote.min.js"></script>
+    <script src="/themes/skillup/js/metisMenu.min.js"></script>
+    <script src="/themes/skillup/js/custom.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

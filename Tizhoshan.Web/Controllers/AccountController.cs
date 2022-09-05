@@ -127,7 +127,7 @@ namespace Tizhoshan.Web.Controllers
 
         [Route("ConfirmPhone")]
         [HttpPost]
-        public async Task<IActionResult> ConfirmPhone(ConfirmPhoneViewModel model)
+        public IActionResult ConfirmPhone(ConfirmPhoneViewModel model)
         {
 
             if (User.Identity.IsAuthenticated)
@@ -142,23 +142,8 @@ namespace Tizhoshan.Web.Controllers
                 var res = _accountService.RegisterConfirmPhone(model);
                 if (res == ConfirmPhoneRegisterEnum.Confirmed)
                 {
-                    //var user = _accountService.FindUserByPhoneNumber(model.PhoneNumber);
-                    //var claims = new List<Claim>()
-                    //{
-                    //    new Claim(ClaimTypes.NameIdentifier,user.UserId.ToString()),
-                    //    new Claim(ClaimTypes.Name,user.PhoneNumber),
-                    //    new Claim("id",user.UserId.ToString())
-                    //};
-                    //var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                    //var principal = new ClaimsPrincipal(identity);
-
-                    //var properties = new AuthenticationProperties
-                    //{
-                    //    IsPersistent = false
-                    //};
-                    //await HttpContext.SignInAsync(principal, properties);
                     TempData["success"] = "حساب کاربری شما با موفقیت ساخته شد";
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Login");
                 }
                 else if (res == ConfirmPhoneRegisterEnum.ErrorConfirmed)
                 {
@@ -179,198 +164,207 @@ namespace Tizhoshan.Web.Controllers
         }
 
 
-
-
-
         [Route("RequestAnotherRegisterVerificationCode/{id}")]
         [HttpGet]
         public IActionResult RequestAnotherRegisterVerificationCode(string id)
         {
-            string message = "";
-            string status = "fail";
             if (User.Identity.IsAuthenticated)
             {
-                return Json(new { status = "fail" });
+                return Redirect("/Profile");
             }
-            var res = _accountService.RequestAnotherRegisterVerificationCode(id);//id is userName==phone number
-            if (res == RequestAnotherRegisterVerificationCodeEnum.NotAllowed)
-            {
-                message = "بین هر درخواست باید 2 دقیقه فاصله باشد";
-            }
-            else if (res == RequestAnotherRegisterVerificationCodeEnum.UserNotFound)
-            {
-                message = "شماره همراه اشتباه است";
-            }
-            else if (res == RequestAnotherRegisterVerificationCodeEnum.UserIsActive)
-            {
-                message = "کاربر فعال امکان دریافت کد تایید را ندارد";
 
-            }
-            else if (res == RequestAnotherRegisterVerificationCodeEnum.NotSend)
+            var res = _accountService.RequestAnotherChangePasswordVerificationCode(id);
+
+            if (res == RequestAnotherChangePasswordVerificationCodeEnum.Error)
             {
-                message = "درخواست با خطا مواجه شد";
+                TempData["error"] = "خطا در ارسال کد تایید";
+                return RedirectToAction("ConfirmPhone", new { id = id });
             }
-            else
+            if (res == RequestAnotherChangePasswordVerificationCodeEnum.NotAllowed)
             {
-                message = "کد تایید جدید برای " + id + " ارسال شد";
-                status = "success";
+                TempData["error"] = "کاربر گرامی لطفا بعد از 1 دقیقه دوباره تلاش کنید";
+                return RedirectToAction("ConfirmPhone", new { id = id });
             }
-            return Json(new { status = status, message = message });
+            if (res == RequestAnotherChangePasswordVerificationCodeEnum.UserNotFound)
+            {
+                TempData["error"] = "کاربری یافت نشد";
+                return RedirectToAction("Login");
+            }
+            if (res == RequestAnotherChangePasswordVerificationCodeEnum.Sent)
+            {
+                TempData["success"] = "کاربر گرامی کد تایید مجدد ارسال شد";
+                return RedirectToAction("ConfirmPhone", new { id = id });
+            }
+
+            TempData["error"] = "خطا در ارسال کد تایید";
+            return RedirectToAction("ConfirmPhone", new { id = id });
         }
 
-        [Route("BaseChangePassword")]
+
+        [Route("ForgotPassword")]
         [HttpGet]
-        public IActionResult BaseChangePassword()
+        public IActionResult ForgotPassword()
         {
             return View();
         }
 
-        //[Route("BaseChangePassword")]
-        //[HttpPost]
-        //public IActionResult BaseChangePassword(BaseChangePasswordViewModel model)
-        //{
-        //    string status = "";
-        //    string message = "";
+        [Route("ForgotPassword")]
+        [HttpPost]
+        public IActionResult ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var res = _accountService.ForgotPasswordSendSms(model);
+                if (res == ForgotPasswordSendSMSEnum.Error)
+                {
+                    TempData["error"] = "متاسفانه ارسال کد تایید مقدور نمیباشد";
+                }
+                else if (res == ForgotPasswordSendSMSEnum.NotAllowed)
+                {
+                    TempData["error"] = "کاربر گرامی حساب کاربری شما غیر فعال است لطفا مجدد ثبت نام کنید";
+                }
+                else if (res == ForgotPasswordSendSMSEnum.UnconfirmedPhone)
+                {
+                    TempData["error"] = "کاربر گرامی شماره همراه شما تایید نشده است لطفا مجدد ثبت نام نمایید";
+                }
+                else if (res == ForgotPasswordSendSMSEnum.OneMiniuteError)
+                {
+                    TempData["error"] = "بین هر درخواست باید یک دقیقه فاصله باشد لطفا لحضاتی دیگر تلاش نمایید";
+                }
 
-        //    if (!ModelState.IsValid)
-        //    {
-        //        var validationErrors = string.Join("<br />",
-        //                           ModelState.Values.Where(E => E.Errors.Count > 0)
-        //                           .SelectMany(E => E.Errors)
-        //                           .Select(E => E.ErrorMessage)
-        //                           .ToArray());
-        //        return Json(new { status = "fail", message = validationErrors });
-        //    }
+                if(res == ForgotPasswordSendSMSEnum.Sent)
+                {
+                    TempData["ChangePasswordPhoneNumber"] = model.PhoneNumber;
+                    return RedirectToAction("ConfirmForgotPasswordPhone");
+                }
+            }
 
-        //    var res = _iAccountRepository.BaseChangePasswordSendSms(model);
-        //    if (res == BaseChangePasswordSendSMSEnum.Error)
-        //    {
-        //        status = "fail";
-        //        message = "متاسفانه ارسال کد تایید مقدور نمیباشد";
-        //    }
-        //    else if (res == BaseChangePasswordSendSMSEnum.NotAllowed)
-        //    {
-        //        status = "fail";
-        //        message = "کاربر گرامی حساب کاربری شما غیر فعال است";
-        //    }
-        //    else if (res == BaseChangePasswordSendSMSEnum.UnconfirmedPhone)
-        //    {
-        //        status = "fail";
-        //        message = "کاربر گرامی شماره همراه شما تایید نشده است لطفا مجدادا ثبت نام نمایید";
-        //    }
-        //    else if (res == BaseChangePasswordSendSMSEnum.OneMiniuteError)
-        //    {
-        //        status = "fail";
-        //        message = "بین هر درخواست باید یک دقیقه فاصله باشد لطفا لحضاتی دیگر تلاش نمایید";
-        //    }
-        //    else
-        //    {
-        //        status = "success";
-        //    }
-        //    TempData["BaseEnterNewPasswordPhoneNumber"] = model.UserName;
-        //    return Json(new { status = status, message = message });
-        //}
+            return View(model);
+        }
 
-        //[Route("BaseEnterNewPassword")]
-        //[HttpGet]
-        //public IActionResult BaseEnterNewPassword()
-        //{
-        //    if (User.Identity.IsAuthenticated)
-        //    {
-        //        return Redirect("/Profile");
-        //    }
-        //    ViewBag.userName = TempData["BaseEnterNewPasswordPhoneNumber"].ToString();
-        //    return PartialView("_BaseEnterNewPassword");
-        //}
+        [Route("ConfirmForgotPasswordPhone")]
+        [HttpGet]
+        public IActionResult ConfirmForgotPasswordPhone()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                TempData["error"] = "محدودیت دسترسی";
+                return Redirect("/Home/Index");
+            }
+            ViewBag.PhoneNumber = TempData["ChangePasswordPhoneNumber"].ToString();
+            return View();
+        }
 
-        //[Route("RequestAnotherChangePasswordVerificationCode/{id}")]
-        //[HttpGet]
-        //public IActionResult RequestAnotherChangePasswordVerificationCode(string id)
-        //{
-        //    if (User.Identity.IsAuthenticated)
-        //    {
-        //        return Redirect("/Profile");
-        //    }
 
-        //    var res = _iAccountRepository.RequestAnotherChangePasswordVerificationCode(id);
-        //    TempData["RequestAnotherChangePasswordVerificationFlag"] = res;
-        //    if (res == RequestAnotherChangePasswordVerificationCodeEnum.Error)
-        //    {
-        //        TempData["BaseEnterNewPasswordPhoneNumber"] = id;
-        //        return Redirect("/BaseEnterNewPassword");
-        //    }
-        //    if (res == RequestAnotherChangePasswordVerificationCodeEnum.NotAllowed)
-        //    {
-        //        TempData["BaseEnterNewPasswordPhoneNumber"] = id;
-        //        return Redirect("/BaseEnterNewPassword");
-        //    }
-        //    if (res == RequestAnotherChangePasswordVerificationCodeEnum.UserNotFound)
-        //    {
-        //        return Redirect("/Login");
-        //    }
-        //    if (res == RequestAnotherChangePasswordVerificationCodeEnum.Sent)
-        //    {
-        //        TempData["BaseEnterNewPasswordPhoneNumber"] = id;
-        //        return Redirect("/BaseEnterNewPassword");
-        //    }
+        [Route("ConfirmForgotPasswordPhone")]
+        [HttpPost]
+        public IActionResult ConfirmForgotPasswordPhone(ConfirmPhoneViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
 
-        //    TempData["BaseEnterNewPasswordPhoneNumber"] = id;
-        //    return Redirect("/BaseEnterNewPassword");
-        //}
+                var res = _accountService.RegisterConfirmPhone(model);
+                if (res == ConfirmPhoneRegisterEnum.Confirmed)
+                {
+                    return RedirectToAction("ChangePassword", new { phoneNumber = model.PhoneNumber});
+                }
+                else if (res == ConfirmPhoneRegisterEnum.ErrorConfirmed)
+                {
+                    TempData["error"] = "کد تائید اشتباه است";
+                }
+                else if (res == ConfirmPhoneRegisterEnum.Expierd)
+                {
+                    TempData["error"] = "کد تائید منقضی شده , لطفا دوباره درخواست نمائید";
+                }
+                else
+                {
+                    TempData["error"] = "متاسفانه تائید شماره همراه موفقیت آمیز نبود , لطفا دوباره تلاش نمائید";
+                }
+            }
 
-        //[Route("BaseEnterNewPassword")]
-        //[HttpPost]
-        //public IActionResult BaseEnterNewPassword(BaseChangePasswordEnterNewViewModel model)
-        //{
-        //    if (User.Identity.IsAuthenticated)
-        //    {
-        //        return Redirect("/Profile");
-        //    }
-        //    if (!ModelState.IsValid)
-        //    {
-        //        TempData["BaseEnterNewPasswordPhoneNumber"] = model.UserName;
-        //        return View(model);
-        //    }
-        //    else
-        //    {
-        //        string status = "";
-        //        string message = "";
 
-        //        var res = _iAccountRepository.BaseChangePasswordFunction(model);
-        //        if (res == BaseChangePasswordFunctionEnum.Error)
-        //        {
-        //            TempData["BaseEnterNewPasswordPhoneNumber"] = model.UserName;
-        //            message = "متاسفانه تغییر رمز عبور موفقیت آمیز نبود";
-        //            status = "fail";
-        //        }
-        //        if (res == BaseChangePasswordFunctionEnum.UserNotFound)
-        //        {
-        //            TempData["BaseEnterNewPasswordPhoneNumber"] = model.UserName;
-        //            message = "متاسفانه تغییر رمز عبور موفقیت آمیز نبود";
-        //            status = "fail";
-        //        }
-        //        if (res == BaseChangePasswordFunctionEnum.InvalidCode)
-        //        {
-        //            TempData["BaseEnterNewPasswordPhoneNumber"] = model.UserName;
-        //            message = "کد تایید اشتباه است";
-        //            status = "fail";
-        //        }
-        //        if (res == BaseChangePasswordFunctionEnum.CodeExspierd)
-        //        {
-        //            TempData["BaseEnterNewPasswordPhoneNumber"] = model.UserName;
-        //            message = "کد تایید منقضی شده است";
-        //            status = "fail";
-        //        }
-        //        if (res == BaseChangePasswordFunctionEnum.Changed)
-        //        {
-        //            TempData["BaseChangePassword"] = true;
-        //            message = "رمز عبور شما با موفقیت تغییر یافت";
-        //            status = "success";
-        //        }
-        //        return Json(new { status = status, message = message });
-        //    }
+            ViewBag.PhoneNumber = model.PhoneNumber;
 
-        //}
+            return View(model);
+
+        }
+
+
+        [Route("ChangePassword/{phoneNumber}")]
+        [HttpGet]
+        public IActionResult ChangePassword(string phoneNumber)
+        {
+            ViewBag.PhoneNumber = phoneNumber;
+            return View();
+        }
+
+
+
+        [Route("ChangePassword")]
+        [HttpPost]
+        public IActionResult ChangePassword(ChangePasswordViewModel model)
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                return Redirect("/Profile");
+            }
+            if (ModelState.IsValid)
+            {
+                var res = _accountService.ChangePassword(model);
+                if (res == true)
+                {
+                    TempData["success"] = "کاربر گرامی رمز عبور شما با موفقیت تغییر یافت";
+                    return RedirectToAction("Login");
+                }
+            }
+
+            return View(model);
+
+        }
+
+
+        [Route("RequestAnotherChangePasswordVerificationCode/{id}")]
+        [HttpGet]
+        public IActionResult RequestAnotherChangePasswordVerificationCode(string id)
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                return Redirect("/Profile");
+            }
+
+            var res = _accountService.RequestAnotherChangePasswordVerificationCode(id);
+
+            if(id != null)
+            {
+                TempData["ChangePasswordPhoneNumber"] = id;
+            }
+
+            if (res == RequestAnotherChangePasswordVerificationCodeEnum.Error)
+            {
+                TempData["error"] = "خطا در ارسال کد تایید";
+                return RedirectToAction("ConfirmForgotPasswordPhone");
+            }
+            if (res == RequestAnotherChangePasswordVerificationCodeEnum.NotAllowed)
+            {
+                TempData["error"] = "کاربر گرامی لطفا بعد از 1 دقیقه دوباره تلاش کنید";
+                return RedirectToAction("ConfirmForgotPasswordPhone");
+            }
+            if (res == RequestAnotherChangePasswordVerificationCodeEnum.UserNotFound)
+            {
+                TempData["error"] = "کاربری یافت نشد";
+                return RedirectToAction("Login");
+            }
+            if (res == RequestAnotherChangePasswordVerificationCodeEnum.Sent)
+            {
+                TempData["success"] = "کاربر گرامی کد تایید مجدد ارسال شد";
+                return RedirectToAction("ConfirmForgotPasswordPhone");
+            }
+
+            TempData["error"] = "خطا در ارسال کد تایید";
+            return RedirectToAction("ConfirmForgotPasswordPhone");
+        }
+
+
 
     }
 }
